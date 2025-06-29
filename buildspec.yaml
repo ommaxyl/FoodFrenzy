@@ -11,9 +11,9 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t 657880976613.dkr.ecr.us-east-2.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker build -t 581573371430.dkr.ecr.us-east1.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION .
       - echo Pushing the Docker image to ECR...
-      - docker push 657880976613.dkr.ecr.us-east-2.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker push 581573371430.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION
 artifacts:
   files:
     - '**/*'
