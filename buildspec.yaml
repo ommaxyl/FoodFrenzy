@@ -3,17 +3,27 @@ version: 0.2
 phases:
   install:
     runtime-versions:
+      java: corretto17
       docker: 18
     commands:
+      - echo Installing Maven...
+      - apt-get update && apt-get install -y maven
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 581573371430.dkr.ecr.us-east-1.amazonaws.com
+
+  pre_build:
+    commands:
+      - echo Building JAR file...
+      - mvn clean package -DskipTests
+
   build:
     commands:
-      - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t 581573371430.dkr.ecr.us-east1.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - IMAGE_TAG=581573371430.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker build -t $IMAGE_TAG .
       - echo Pushing the Docker image to ECR...
-      - docker push 581573371430.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker push $IMAGE_TAG
+
 artifacts:
   files:
     - '**/*'
