@@ -7,9 +7,13 @@ phases:
     commands:
       - echo "Using Java Corretto 17"
       - echo "Logging into ECR account 1..."
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 581573371430.dkr.ecr.us-east-1.amazonaws.com
+      - >
+        aws ecr get-login-password --region us-east-1 |
+        docker login --username AWS --password-stdin 581573371430.dkr.ecr.us-east-1.amazonaws.com
       - echo "Logging into ECR account 2..."
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 586928288932.dkr.ecr.us-east-1.amazonaws.com
+      - >
+        aws ecr get-login-password --region us-east-1 |
+        docker login --username AWS --password-stdin 586928288932.dkr.ecr.us-east-1.amazonaws.com
 
   pre_build:
     commands:
