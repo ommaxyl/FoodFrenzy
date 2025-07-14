@@ -13,6 +13,7 @@ phases:
     commands:
       - echo Building Spring Boot JAR...
       - mvn clean package -DskipTests
+      - echo JAR build complete
 
   build:
     commands:
