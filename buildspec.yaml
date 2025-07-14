@@ -18,7 +18,7 @@ phases:
   pre_build:
     commands:
       - "echo Building Spring Boot JAR..."
-      - "mvn clean package -DskipTests"
+      - "mvn -X clean package -DskipTests || (echo 'BUILD FAILED' && ls -la && cat target/*.log || true && exit 1)"
       - "echo JAR build complete"
 
   build:
@@ -29,6 +29,20 @@ phases:
       - "echo Pushing image to ECR..."
       - "docker push $IMAGE_TAG"
 
+  post_build:
+    commands:
+      - "echo Build completed on `date`"
+      - "echo Image URI: $IMAGE_TAG"
+      - "export IMAGE_URI=$IMAGE_TAG"
+
 artifacts:
   files:
     - target/*.jar
+  discard-paths: yes
+
+reports:
+  build_report:
+    files:
+      - "target/surefire-reports/*.txt"
+    base-directory: "target/surefire-reports"
+    discard-paths: yes
