@@ -21,7 +21,7 @@ phases:
       - 'mvn -X clean package -DskipTests > build.log 2>&1 || true'
       - 'echo ---- MAVEN BUILD LOG ----'
       - 'tail -n 100 build.log'
-      - 'if grep -q "\[ERROR\]" build.log; then echo "BUILD FAILED"; cat build.log; exit 1; fi'
+      - 'grep -q "\[ERROR\]" build.log && { echo "BUILD FAILED"; cat build.log; exit 1; } || true'
       - 'echo JAR build complete'
 
   build:
