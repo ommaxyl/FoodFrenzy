@@ -19,10 +19,11 @@ phases:
 
   build:
     commands:
-      - export IMAGE_TAG=586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo "Setting IMAGE_TAG..."
+      - IMAGE_TAG=586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo "Building Docker image: $IMAGE_TAG"
       - docker build -t $IMAGE_TAG .
-      - echo "Pushing Docker image to ECR..."
+      - echo "Pushing image to ECR..."
       - docker push $IMAGE_TAG
 
 artifacts:
