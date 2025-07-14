@@ -18,7 +18,10 @@ phases:
   pre_build:
     commands:
       - "echo Building Spring Boot JAR..."
-      - "mvn -X clean package -DskipTests || (echo 'BUILD FAILED' && ls -la && cat target/*.log || true && exit 1)"
+      - "mvn -X clean package -DskipTests > build.log 2>&1 || true"
+      - "echo ---- MAVEN BUILD LOG ----"
+      - "tail -n 100 build.log"
+      - "if grep -q '\[ERROR\]' build.log; then echo 'BUILD FAILED'; cat build.log; exit 1; fi"
       - "echo JAR build complete"
 
   build:
@@ -38,6 +41,8 @@ phases:
 artifacts:
   files:
     - target/*.jar
+    - build.log
+    - target/surefire-reports/**/*
   discard-paths: yes
 
 reports:
