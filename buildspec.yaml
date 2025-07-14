@@ -3,9 +3,9 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto17  # Temurin 17 used in Docker, Corretto 17 is equivalent for CodeBuild
     commands:
-      - echo "Using Java Corretto 17"
+      - echo "Using Java Eclipse Temurin 17 (via Corretto 17 in CodeBuild)"
       - echo "Logging into ECR account 1..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 581573371430.dkr.ecr.us-east-1.amazonaws.com
       - echo "Logging into ECR account 2..."
@@ -13,7 +13,7 @@ phases:
 
   pre_build:
     commands:
-      - echo "Building Spring Boot JAR..."
+      - echo "Building Spring Boot JAR with Maven 3.9.5 and Java 17..."
       - mvn clean package -DskipTests
       - echo "JAR build complete"
 
