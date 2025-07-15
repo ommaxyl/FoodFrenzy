@@ -21,26 +21,23 @@ phases:
   pre_build:
     commands:
       - echo "Preparing build environment"
-      - echo "Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - echo "Checking if image already exists"
+      - if docker images | grep -q $IMAGE_TAG; then echo "Image exists, removing..."; docker rmi -f $IMAGE_TAG; else echo "No existing image"; fi
+      - docker image prune -f
 
   build:
     commands:
-      - echo "Checking and removing existing Docker image if it exists"
-      - bash -c "docker images -q $IMAGE_TAG | grep -q . && docker rmi -f $IMAGE_TAG || echo 'No existing image to remove'"
-      - echo "Cleaning dangling images"
-      - docker image prune -f
       - echo "Building Spring Boot JAR"
       - mvn clean package -DskipTests
-      - echo "Building Docker image: $IMAGE_TAG"
-      - docker build -t $IMAGE_TAG . | tee docker_build.log
+      - echo "Building Docker image"
+      - docker build -t $IMAGE_TAG .
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-      - echo "Pushing image to ECR"
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
 
 post_build:
   commands:
     - echo "Build completed on $(date)"
-    - echo "Image pushed to ECR:"
+    - echo "Pushed image:"
     - echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
 artifacts:
