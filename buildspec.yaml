@@ -32,7 +32,7 @@ phases:
       - echo "Building Spring Boot JAR"
       - mvn clean package -DskipTests
       - echo "Building Docker image: $IMAGE_TAG"
-      - docker build -t $IMAGE_TAG .
+      - docker build -t $IMAGE_TAG . | tee docker_build.log
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
       - echo "Pushing image to ECR"
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
