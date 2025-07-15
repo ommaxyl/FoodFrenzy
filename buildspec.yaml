@@ -11,7 +11,9 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - 'echo Installing prerequisites'
+      - 'echo Checking AWS CLI and Docker versions'
+      - 'aws --version'
+      - 'docker --version'
       - 'echo Logging into ECR'
       - 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com'
 
@@ -25,17 +27,26 @@ phases:
       - 'echo Building Spring Boot JAR'
       - 'set -o pipefail'
       - 'mvn -X clean package -DskipTests | tee build.log'
+      - 'echo Packaging complete, status: $?'
 
-      - 'echo Packaging complete, status: $?'  # shows mvn exit code
-      - 'echo Building Docker image'
+      - 'echo Building Docker image with commit hash tag'
       - 'IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION'
       - 'docker build -t $IMAGE_TAG .'
+
+      - 'echo Tagging image as latest'
+      - 'docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
+
+      - 'echo Pushing commit-hash tag'
       - 'docker push $IMAGE_TAG'
+      - 'echo Pushing latest tag'
+      - 'docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
 
   post_build:
     commands:
       - 'echo Build completed on $(date)'
-      - 'echo Image URI: $IMAGE_TAG'
+      - 'echo Image URIs:'
+      - 'echo $IMAGE_TAG'
+      - 'echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
       - 'export IMAGE_URI=$IMAGE_TAG'
 
 artifacts:
