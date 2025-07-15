@@ -30,16 +30,21 @@ phases:
       - set -o pipefail
       - mvn -X clean package -DskipTests | tee build.log
       - echo "Packaging complete, status: $?"
-
-      - echo "Building Docker image with IMAGE_TAG env"
+      - echo "Building Docker image with IMAGE_TAG"
       - docker build -t $IMAGE_TAG .
-
       - echo "Tagging image for ECR"
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-
       - echo "Pushing images to ECR"
       - docker push $IMAGE_TAG
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
+  post_build:
+    commands:
+      - echo "Build completed on $(date)"
+      - echo "Image URIs:"
+      - echo $IMAGE_TAG
+      - echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - export IMAGE_URI=$IMAGE_TAG
 
 artifacts:
   files:
