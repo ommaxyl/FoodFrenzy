@@ -1,3 +1,4 @@
+
 version: 0.2
 
 env:
@@ -5,6 +6,7 @@ env:
     AWS_REGION: "us-east-1"
     IMAGE_REPO_NAME: "awspringbootdeployment-app"
     AWS_ACCOUNT_ID: "586928288932"
+    CODEBUILD_RESOLVED_SOURCE_VERSION: latest
 
 phases:
   install:
