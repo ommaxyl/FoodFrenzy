@@ -56,7 +56,7 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- Devtools (Optional for Dev Only) -->
+    <!-- Devtools (Development Only) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -64,7 +64,7 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Test -->
+    <!-- Testing -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -78,16 +78,30 @@
   </dependencies>
 
   <build>
-    <!-- Enable filtering of resource files if you use placeholders -->
     <resources>
+      <!-- Filter text-based resources -->
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/*.yml</include>
+        </includes>
+      </resource>
+
+      <!-- Exclude filtering for binary files -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.properties</exclude>
+          <exclude>**/*.yml</exclude>
+        </excludes>
       </resource>
     </resources>
 
     <plugins>
-      <!-- Compiler plugin to enforce Java version -->
+      <!-- Enforce Java version -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -114,3 +128,4 @@
   </build>
 
 </project>
+
