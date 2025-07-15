@@ -28,7 +28,8 @@ phases:
   build:
     commands:
       - echo "Building Spring Boot JAR"
-      - mvn clean package -DskipTests
+      - set -o pipefail
+      - mvn -X clean package -DskipTests | tee build.log
       - echo "Building Docker image"
       - docker build -t $IMAGE_TAG .
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
