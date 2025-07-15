@@ -16,8 +16,7 @@ phases:
       - aws --version
       - docker --version
       - echo "Logging into ECR"
-      - aws ecr get-login-password --region $AWS_REGION \
-        | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   pre_build:
     commands:
@@ -35,7 +34,6 @@ phases:
       - echo "Tagging image for ECR"
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
       - echo "Pushing images to ECR"
-      - docker push $IMAGE_TAG
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
 
   post_build:
