@@ -11,44 +11,50 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - 'echo Checking AWS CLI and Docker versions'
-      - 'aws --version'
-      - 'docker --version'
-      - 'echo Logging into ECR'
-      - 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com'
-
+      - echo "Checking AWS CLI and Docker versions"
+      - aws --version
+      - docker --version
+      - echo "Logging into ECR"
+      - aws ecr get-login-password --region $AWS_REGION \
+        | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   pre_build:
     commands:
-      - 'echo Preparing build environment'
-      - 'echo Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION'
+      - echo "Preparing build environment"
+      - echo "Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
 
   build:
     commands:
-      - 'echo Building Spring Boot JAR'
-      - 'set -o pipefail'
-      - 'mvn -X clean package -DskipTests | tee build.log'
-      - 'echo Packaging complete, status: $?'
+      - echo "Building Spring Boot JAR"
+      - set -o pipefail
+      - mvn -X clean package -DskipTests | tee build.log
+      - echo "JAR built. Contents of target/:"
+      - ls -l target
 
-      - 'echo Building Docker image with commit hash tag'
-      - 'IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION'
-      - 'docker build -t $IMAGE_TAG .'
+      - echo "Verifying Dockerfile presence"
+      - ls -l .
+      - cat Dockerfile || echo "Dockerfile not found"
 
-      - 'echo Tagging image as latest'
-      - 'docker tag $IMAGE_TAG 586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:latest'
+      - echo "Building Docker image"
+      - export IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo "Using IMAGE_TAG=$IMAGE_TAG"
+      - docker build -t "$IMAGE_TAG" .
 
-      - 'echo Pushing commit-hash tag'
-      - 'docker push $IMAGE_TAG'
-      - 'echo Pushing latest tag'
-      - 'docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
+      - echo "Tagging image as latest"
+      - docker tag "$IMAGE_TAG" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+
+      - echo "Pushing commit tag"
+      - docker push "$IMAGE_TAG"
+      - echo "Pushing latest tag"
+      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
   post_build:
     commands:
-      - 'echo Build completed on $(date)'
-      - 'echo Image URIs:'
-      - 'echo $IMAGE_TAG'
-      - 'echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
-      - 'export IMAGE_URI=$IMAGE_TAG'
+      - echo "Build completed on $(date)"
+      - echo "Image URIs:"
+      - echo "$IMAGE_TAG"
+      - echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - export IMAGE_URI="$IMAGE_TAG"
 
 artifacts:
   files:
