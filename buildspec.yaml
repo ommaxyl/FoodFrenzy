@@ -42,7 +42,6 @@ phases:
       - echo "Image URIs:"
       - echo $IMAGE_TAG
       - echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-      - export IMAGE_URI=$IMAGE_TAG
 
 artifacts:
   files:
