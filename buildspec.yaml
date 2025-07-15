@@ -11,43 +11,33 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - 'echo Using Java Corretto 11'
-      - 'echo Logging into ECR...'
+      - 'echo Installing prerequisites'
+      - 'echo Logging into ECR'
       - 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com'
 
   pre_build:
     commands:
-      - 'echo Building Spring Boot JAR...'
-      - 'mvn -X clean package -DskipTests > build.log 2>&1 || true'
-      - 'echo ---- MAVEN BUILD LOG ----'
-      - 'tail -n 100 build.log'
-      - "if grep -q '\\[ERROR\\]' build.log; then echo \"BUILD FAILED\"; cat build.log; exit 1; fi"
-      - 'echo JAR build complete'
+      - 'echo Preparing build environment'
+      - 'echo CodeBuild source version: $CODEBUILD_RESOLVED_SOURCE_VERSION'
 
   build:
     commands:
+      - 'echo Building Spring Boot JAR'
+      - 'mvn clean package -DskipTests'
+      - 'echo Packaging complete'
       - 'IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION'
       - 'echo Building Docker image: $IMAGE_TAG'
       - 'docker build -t $IMAGE_TAG .'
-      - 'echo Pushing image to ECR...'
+      - 'echo Pushing Docker image to ECR'
       - 'docker push $IMAGE_TAG'
 
   post_build:
     commands:
-      - 'echo Build completed on `date`'
-      - 'echo Image URI: $IMAGE_TAG'
-      - 'export IMAGE_URI=$IMAGE_TAG'
+      - 'echo Build completed on $(date)'
+      - 'echo Exporting IMAGE_URI'
+      - 'export IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION'
 
 artifacts:
   files:
     - target/*.jar
-    - build.log
-    - target/surefire-reports/**/*
   discard-paths: yes
-
-reports:
-  build_report:
-    files:
-      - 'target/surefire-reports/*.txt'
-    base-directory: 'target/surefire-reports'
-    discard-paths: yes
