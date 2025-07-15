@@ -25,17 +25,14 @@ phases:
 
   build:
     commands:
-      - echo "Checking and removing local image if exists"
-      - bash -c 'docker images -q $IMAGE_TAG | grep -q . && docker rmi -f $IMAGE_TAG || echo "No local image to remove"'
-      - echo "Cleaning up dangling images"
+      - echo "Checking and removing existing Docker image if it exists"
+      - bash -c "docker images -q $IMAGE_TAG | grep -q . && docker rmi -f $IMAGE_TAG || echo 'No existing image to remove'"
+      - echo "Cleaning dangling images"
       - docker image prune -f
       - echo "Building Spring Boot JAR"
-      - set -o pipefail
-      - mvn -X clean package -DskipTests | tee build.log
-      - echo "Packaging complete, status: $?"
+      - mvn clean package -DskipTests
       - echo "Building Docker image: $IMAGE_TAG"
       - docker build -t $IMAGE_TAG .
-      - echo "Tagging image for ECR"
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
       - echo "Pushing image to ECR"
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
@@ -51,6 +48,4 @@ artifacts:
     - target/*.jar
     - build.log
   discard-paths: yes
-
-
 
