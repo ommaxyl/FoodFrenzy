@@ -15,8 +15,7 @@ phases:
       - aws --version
       - docker --version
       - echo "Logging into ECR"
-      - aws ecr get-login-password --region $AWS_REGION \
-        | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
   pre_build:
     commands:
@@ -25,28 +24,32 @@ phases:
 
   build:
     commands:
-      - echo "Building Spring Boot JAR"
-      - set -o pipefail
-      - mvn -X clean package -DskipTests | tee build.log
-      - echo "JAR built. Contents of target/:"
-      - ls -l target
+      - |
+        echo "Building Spring Boot JAR"
+        set -o pipefail
+        mvn -X clean package -DskipTests | tee build.log
+        echo "Packaging complete (status: $?)"
 
-      - echo "Verifying Dockerfile presence"
-      - ls -l .
-      - cat Dockerfile || echo "Dockerfile not found"
+      - |
+        echo "JAR built. Contents of target/:"
+        ls -l target
 
-      - echo "Building Docker image"
-      - export IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
-      - echo "Using IMAGE_TAG=$IMAGE_TAG"
-      - docker build -t "$IMAGE_TAG" .
+      - |
+        echo "Verifying Dockerfile presence"
+        ls -l .
+        cat Dockerfile || echo "Dockerfile not found"
 
-      - echo "Tagging image as latest"
-      - docker tag "$IMAGE_TAG" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - |
+        echo "Building Docker image"
+        IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+        echo "Using IMAGE_TAG=$IMAGE_TAG"
+        docker build -t "$IMAGE_TAG" .
 
-      - echo "Pushing commit tag"
-      - docker push "$IMAGE_TAG"
-      - echo "Pushing latest tag"
-      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - |
+        echo "Tagging and pushing images"
+        docker tag "$IMAGE_TAG" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+        docker push "$IMAGE_TAG"
+        docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
   post_build:
     commands:
