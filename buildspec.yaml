@@ -5,53 +5,73 @@ env:
     AWS_REGION: "us-east-1"
     IMAGE_REPO_NAME: "awspringbootdeployment-app"
     AWS_ACCOUNT_ID: "586928288932"
-    IMAGE_TAG: "springbootecs"
 
 phases:
   install:
     runtime-versions:
       java: corretto11
     commands:
-      - 'echo Checking AWS CLI and Docker versions'
-      - 'aws --version'
-      - 'docker --version'
-      - 'echo Logging into ECR'
-      - 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com'
-
+      - echo "Checking AWS CLI and Docker versions"
+      - aws --version
+      - docker --version
+      - echo "Logging into ECR"
+      - |
+        aws ecr get-login-password --region $AWS_REGION \
+        | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   pre_build:
     commands:
-      - 'echo Preparing build environment'
-      - 'echo Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION'
+      - echo "Preparing build environment"
+      - echo "Build started on $(date)"
+      - echo "Source version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
+      - echo "Listing source directory"
+      - ls -la .
 
   build:
     commands:
-      - 'echo Building Spring Boot JAR'
-      - 'set -o pipefail'
-      - 'mvn -X clean package -DskipTests | tee build.log'
-      - 'echo Packaging complete, status: $?'
+      - echo "Building Spring Boot JAR"
+      - set -o pipefail
+      - mvn -X clean package -DskipTests | tee build.log
+      - echo "JAR build status: $?"
+      - echo "Contents of target/:" && ls -la target
 
-      - 'echo Building Docker image with commit hash tag'
-      - 'docker build -t $IMAGE_TAG .'
+      # Docker context debug
+      - echo "Verifying Dockerfile presence and context files"
+      - if [ ! -f Dockerfile ]; then echo "ERROR: Dockerfile not found"; exit 1; fi
+      - ls -la
+      - echo "Dockerfile preview:" && head -n 20 Dockerfile
 
-      - 'echo Tagging image as latest'
-      - 'docker tag $IMAGE_TAG 586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:latest'
+      # Docker build with logging
+      - |
+        echo "Building Docker image"
+        export IMAGE_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+        set -o pipefail
+        docker build -t "$IMAGE_TAG" . 2>&1 | tee docker_build.log
+        BUILD_EXIT=${PIPESTATUS[0]}
+        if [ $BUILD_EXIT -ne 0 ]; then
+          echo "Docker build failed with exit code $BUILD_EXIT"
+          echo "Dumping docker_build.log"
+          cat docker_build.log
+          exit $BUILD_EXIT
+        fi
 
-      - 'echo Pushing commit-hash tag'
-      - 'docker push $IMAGE_TAG'
-      - 'echo Pushing latest tag'
-      - 'docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
+      - echo "Tagging image as latest"
+      - docker tag "$IMAGE_TAG" "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+
+      - echo "Pushing images to ECR"
+      - docker push "$IMAGE_TAG"
+      - docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
   post_build:
     commands:
-      - 'echo Build completed on $(date)'
-      - 'echo Image URIs:'
-      - 'echo $IMAGE_TAG'
-      - 'echo $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest'
-      - 'export IMAGE_URI=$IMAGE_TAG'
+      - echo "Build completed on $(date)"
+      - echo "Image URIs:"
+      - echo "$IMAGE_TAG"
+      - echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
 artifacts:
   files:
     - target/*.jar
     - build.log
+    - docker_build.log
   discard-paths: yes
