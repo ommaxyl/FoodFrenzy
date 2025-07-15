@@ -35,7 +35,7 @@ phases:
       - 'docker build -t $IMAGE_TAG .'
 
       - 'echo Tagging image as latest'
-      - 'docker tag awspringbootdeployment-app:latest 586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:latest'
+      - 'docker tag $IMAGE_TAG 586928288932.dkr.ecr.us-east-1.amazonaws.com/awspringbootdeployment-app:latest'
 
       - 'echo Pushing commit-hash tag'
       - 'docker push $IMAGE_TAG'
