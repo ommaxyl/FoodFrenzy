@@ -25,20 +25,20 @@ phases:
 
   build:
     commands:
-      - |
+      - echo "Checking if Docker image $IMAGE_TAG exists locally and removing it if found"
+      - >
         if docker images -q $IMAGE_TAG > /dev/null 2>&1; then
-          echo "Image $IMAGE_TAG exists. Removing..."
-          docker rmi -f $IMAGE_TAG
+          echo "Image $IMAGE_TAG exists. Removing...";
+          docker rmi -f $IMAGE_TAG;
         else
-          echo "Image $IMAGE_TAG does not exist. Skipping removal."
+          echo "Image $IMAGE_TAG does not exist. Skipping removal.";
         fi
-      - echo "Removing dangling images if any..."
+      - echo "Cleaning up dangling images"
       - docker image prune -f
       - echo "Building Spring Boot JAR"
       - set -o pipefail
       - mvn -X clean package -DskipTests | tee build.log
-      - echo "Packaging complete, status: $?"
-      - echo "Building Docker image: $IMAGE_TAG"
+      - echo "Building Docker image"
       - docker build -t $IMAGE_TAG .
       - echo "Tagging image for ECR"
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
@@ -48,8 +48,7 @@ phases:
 post_build:
   commands:
     - echo "Build completed on $(date)"
-    - echo "Pushed image:"
-    - echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+    - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
 artifacts:
   files:
