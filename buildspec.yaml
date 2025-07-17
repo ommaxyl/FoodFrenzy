@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     AWS_REGION: "us-east-1"
-    IMAGE_REPO_NAME: "awspringbootdeployment-app"
+    IMAGE_REPO_NAME: "springboot-secondapp"
     AWS_ACCOUNT_ID: "586928288932"
     IMAGE_TAG: "springbootecs"
 
