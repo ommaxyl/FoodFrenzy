@@ -14,8 +14,8 @@ phases:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "Installing jq for JSON parsing"
-      - apt-get update && apt-get install -y jq
+      - echo "Installing jq for secret parsing"
+      - yum install -y jq
 
       - echo "Checking AWS CLI and Docker versions"
       - aws --version
