@@ -53,8 +53,11 @@ post_build:
   commands:
     - echo "Build completed on $(date)"
     - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+    - echo "Pushing image complete. Writing imagedefinitions.json..."
+    - printf '[{"name":"frenzyfood","imageUri":"%s"}]' "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest" > imagedefinitions.json
 artifacts:
   files:
+    - imagedefinitions.json
     - target/*.jar
     - build.log
   discard-paths: yes

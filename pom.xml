@@ -22,6 +22,19 @@
     <java.version>17</java.version>
   </properties>
 
+  <!-- Spring Cloud AWS BOM -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.awspring.cloud</groupId>
+        <artifactId>spring-cloud-aws-dependencies</artifactId>
+        <version>3.0.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <!-- Web and UI -->
     <dependency>
@@ -56,7 +69,7 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- Devtools (Development Only) -->
+    <!-- Devtools -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -74,6 +87,12 @@
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
+    </dependency>
+
+    <!-- AWS Secrets Manager integration -->
+    <dependency>
+      <groupId>io.awspring.cloud</groupId>
+      <artifactId>spring-cloud-starter-aws-secrets-manager-config</artifactId>
     </dependency>
   </dependencies>
 
@@ -101,7 +120,7 @@
     </resources>
 
     <plugins>
-      <!-- Enforce Java version -->
+      <!-- Java Compiler Plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -112,7 +131,7 @@
         </configuration>
       </plugin>
 
-      <!-- Spring Boot repackage plugin -->
+      <!-- Spring Boot Maven Plugin -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
