@@ -49,15 +49,15 @@ phases:
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
 
-post_build:
-  commands:
-    - echo "Build completed on $(date)"
-    - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
-    - echo "Pushing image complete. Writing imagedefinitions.json..."
-    - printf '[{"name":"frenzyfood-app","imageUri":"%s.dkr.ecr.%s.amazonaws.com/%s:%s"}]' "$AWS_ACCOUNT_ID" "$AWS_REGION" "$IMAGE_REPO_NAME" "latest" > imagedefinitions.json
-    - echo "Contents of imagedefinitions.json"
-    - cat imagedefinitions.json
-    - ls -lah
+  post_build:
+    commands:
+      - echo "Build completed on $(date)"
+      - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - echo "Pushing image complete. Writing imagedefinitions.json..."
+      - printf '[{"name":"frenzyfood-app","imageUri":"%s.dkr.ecr.%s.amazonaws.com/%s:%s"}]' "$AWS_ACCOUNT_ID" "$AWS_REGION" "$IMAGE_REPO_NAME" "latest" > imagedefinitions.json
+      - echo "Contents of imagedefinitions.json"
+      - cat imagedefinitions.json
+      - ls -lah
 
 artifacts:
   files:
