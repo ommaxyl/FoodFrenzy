@@ -8,48 +8,49 @@ env:
     IMAGE_TAG: "springbootecs"
   secrets-manager:
     DOCKERHUB_CREDENTIALS: dockerhub-connection
+
 phases:
   install:
     runtime-versions:
       java: corretto11
     commands:
-      - echo "Installing jq for secret parsing"
-      - yum install -y jq
-      - echo "Checking AWS CLI and Docker versions"
-      - aws --version
-      - docker --version
-      - echo "Extracting Docker Hub credentials from Secrets Manager"
-      - export DOCKERHUB_USERNAME=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_username')
-      - export DOCKERHUB_PASSWORD=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_password')
-      - echo "Logging into Docker Hub"
-      - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-      - echo "Logging into Amazon ECR"
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - "echo Installing jq for secret parsing"
+      - "yum install -y jq"
+      - "echo Checking AWS CLI and Docker versions"
+      - "aws --version"
+      - "docker --version"
+      - "echo Extracting Docker Hub credentials from Secrets Manager"
+      - "export DOCKERHUB_USERNAME=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_username')"
+      - "export DOCKERHUB_PASSWORD=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_password')"
+      - "echo Logging into Docker Hub"
+      - "echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin"
+      - "echo Logging into Amazon ECR"
+      - "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
   pre_build:
     commands:
-      - echo "Preparing build environment"
-      - sh -c 'if docker images | grep -q $IMAGE_TAG; then echo "Image exists, removing..."; docker rmi -f $IMAGE_TAG; else echo "No existing image"; fi'
-      - docker image prune -f
+      - "echo Preparing build environment"
+      - "sh -c 'if docker images | grep -q $IMAGE_TAG; then echo \"Image exists, removing...\"; docker rmi -f $IMAGE_TAG; else echo \"No existing image\"; fi'"
+      - "docker image prune -f"
 
   build:
     commands:
-      - echo "Building Spring Boot JAR"
-      - sh -c 'set -o pipefail && mvn -X clean package -DskipTests | tee build.log'
-      - echo "Building Docker image"
-      - docker build -t $IMAGE_TAG .
-      - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - "echo Building Spring Boot JAR"
+      - "sh -c 'set -o pipefail && mvn -X clean package -DskipTests | tee build.log'"
+      - "echo Building Docker image"
+      - "docker build -t $IMAGE_TAG ."
+      - "docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
 
   post_build:
     commands:
-      - echo "Build completed on $(date)"
-      - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
-      - echo "Pushing image complete. Writing imagedefinitions.json..."
-      - echo "[{"name":"frenzyfood-app","imageUri":"$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"}]" > imagedefinitions.json
-      - echo "Contents of imagedefinitions.json"
-      - cat imagedefinitions.json
-      - ls -lah
+      - "echo Build completed on $(date)"
+      - "echo Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
+      - "echo Pushing image complete. Writing imagedefinitions.json..."
+      - "sh -c 'echo \"[{\\\"name\\\":\\\"frenzyfood-app\\\",\\\"imageUri\\\":\\\"$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest\\\"}]\" > imagedefinitions.json'"
+      - "echo Contents of imagedefinitions.json"
+      - "cat imagedefinitions.json"
+      - "ls -lah"
 
 artifacts:
   files:
