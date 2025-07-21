@@ -16,26 +16,27 @@ phases:
     commands:
       - echo "Installing jq for secret parsing"
       - yum install -y jq
-
       - echo "Checking AWS CLI and Docker versions"
       - aws --version
       - docker --version
-
       - echo "Extracting Docker Hub credentials from Secrets Manager"
       - export DOCKERHUB_USERNAME=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_username')
       - export DOCKERHUB_PASSWORD=$(echo $DOCKERHUB_CREDENTIALS | jq -r '.dockerhub_password')
-
-
       - echo "Logging into Docker Hub"
       - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-
       - echo "Logging into Amazon ECR"
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   pre_build:
     commands:
       - echo "Preparing build environment"
-      - if docker images | grep -q $IMAGE_TAG; then echo "Image exists, removing..."; docker rmi -f $IMAGE_TAG; else echo "No existing image"; fi
+      - >
+        if docker images | grep -q $IMAGE_TAG; then \
+          echo "Image exists, removing..."; \
+          docker rmi -f $IMAGE_TAG; \
+        else \
+          echo "No existing image"; \
+        fi
       - docker image prune -f
 
   build:
@@ -43,7 +44,6 @@ phases:
       - echo "Building Spring Boot JAR"
       - set -o pipefail
       - mvn -X clean package -DskipTests | tee build.log
-
       - echo "Building Docker image"
       - docker build -t $IMAGE_TAG .
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
