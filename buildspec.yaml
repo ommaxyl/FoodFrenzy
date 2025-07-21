@@ -30,13 +30,7 @@ phases:
   pre_build:
     commands:
       - echo "Preparing build environment"
-      - |
-        if docker images | grep -q $IMAGE_TAG; then 
-          echo "Image exists, removing..."
-          docker rmi -f $IMAGE_TAG
-        else 
-          echo "No existing image"
-        fi
+      - sh -c 'if docker images | grep -q $IMAGE_TAG; then echo "Image exists, removing..."; docker rmi -f $IMAGE_TAG; else echo "No existing image"; fi'
       - docker image prune -f
 
   build:
@@ -54,8 +48,7 @@ phases:
       - echo "Build completed on $(date)"
       - echo "Image pushed: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest"
       - echo "Pushing image complete. Writing imagedefinitions.json..."
-      - |
-        echo "[{\"name\":\"frenzyfood-app\",\"imageUri\":\"$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest\"}]" > imagedefinitions.json
+      - sh -c 'echo "[{\"name\":\"frenzyfood-app\",\"imageUri\":\"$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest\"}]" > imagedefinitions.json'
       - echo "Contents of imagedefinitions.json"
       - cat imagedefinitions.json
       - ls -lah
