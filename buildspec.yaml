@@ -8,7 +8,6 @@ env:
     IMAGE_TAG: "springbootecs"
   secrets-manager:
     DOCKERHUB_CREDENTIALS: dockerhub-connection
-
 phases:
   install:
     runtime-versions:
@@ -36,8 +35,7 @@ phases:
   build:
     commands:
       - echo "Building Spring Boot JAR"
-      - set -o pipefail
-      - mvn -X clean package -DskipTests | tee build.log
+      - sh -c 'set -o pipefail && mvn -X clean package -DskipTests | tee build.log'
       - echo "Building Docker image"
       - docker build -t $IMAGE_TAG .
       - docker tag $IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
